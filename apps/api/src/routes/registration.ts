@@ -14,7 +14,10 @@ registrationRoutes.post('/', zValidator('json', RegisterVehicleSchema), async c 
   const result = await registerVehicle(input)
 
   if (!result.success) {
-    const status = result.error?.includes('locked') ? 429 : 400
+    const status = (result.statusCode ?? (result.error?.includes('locked') ? 429 : 400)) as
+      | 400
+      | 409
+      | 429
     return c.json({ error: result.error ?? 'Registration failed' }, status)
   }
 

@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { verifyAccessToken } from '../services/auth.service'
 import { isOtpDevMode } from '../types/env'
 import { parseDevSessionToken } from '../services/dev-registration'
 
@@ -15,9 +15,10 @@ export async function getOptionalUserId(authHeader: string | undefined): Promise
     if (devUserId) return devUserId
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser(token)
-
-  return user?.id ?? null
+  try {
+    const { userId } = await verifyAccessToken(token)
+    return userId
+  } catch {
+    return null
+  }
 }

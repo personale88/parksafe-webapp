@@ -13,7 +13,11 @@ import postgres from 'postgres'
 const MIGRATIONS_DIR = join(process.cwd(), 'src', 'migrations')
 
 /** Manual SQL files applied after Drizzle journal (sorted by filename). */
-const MANUAL_MIGRATIONS = ['002_dashboard_profile.sql'] as const
+const MANUAL_MIGRATIONS = [
+  '002_dashboard_profile.sql',
+  '003_custom_auth.sql',
+  '004_phone_and_sessions.sql',
+] as const
 
 async function ensureManualMigrationsTable(sql: ReturnType<typeof postgres>) {
   await sql`

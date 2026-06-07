@@ -38,8 +38,20 @@ export function createInMemoryRedis() {
     async incr(key: string): Promise<number> {
       const entry = store.get(key)
       const next = entry ? parseInt(entry.value, 10) + 1 : 1
-      store.set(key, { value: String(next), expiresAt: entry?.expiresAt })
+      const updated: MemoryEntry = { value: String(next) }
+      if (entry?.expiresAt !== undefined) {
+        updated.expiresAt = entry.expiresAt
+      }
+      store.set(key, updated)
       return next
+    },
+
+    async expire(key: string, ttlSeconds: number): Promise<number> {
+      const entry = store.get(key)
+      if (!entry) return 0
+      entry.expiresAt = Date.now() + ttlSeconds * 1000
+      store.set(key, entry)
+      return 1
     },
 
     async ttl(key: string): Promise<number> {

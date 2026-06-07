@@ -1,39 +1,32 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 import { RequestOtpSchema, VerifyOtpSchema } from '@parksafe/types'
 import { requestOtp, verifyOtp } from '../services/otp.service'
 import { isPhoneRegistered, signInWithOtp, SIGN_IN_ERROR_NOT_REGISTERED } from '../services/login.service'
+import { refreshSession, revokeSession, AuthError } from '../services/auth.service'
+
+const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+})
 
 export const authRoutes = new Hono()
 
-/**
- * POST /auth/request-otp
- * Public — initiates OTP delivery to the provided phone number.
- * Phone is validated by Zod then passed only to the OTP service (never stored).
- */
 authRoutes.post('/request-otp', zValidator('json', RequestOtpSchema), async c => {
   const { phone } = c.req.valid('json')
 
   try {
     const result = await requestOtp(phone)
-
     if (!result.success) {
       return c.json({ error: result.message }, 429)
     }
-
     return c.json({ message: result.message })
   } catch (err) {
     console.error('[auth] request-otp failed:', err instanceof Error ? err.message : err)
-    const message =
-      err instanceof Error ? err.message : 'Failed to send OTP. Please try again.'
-    return c.json({ error: message }, 500)
+    return c.json({ error: 'Failed to send OTP. Please try again.' }, 500)
   }
 })
 
-/**
- * POST /auth/verify-otp
- * Public — verifies the OTP and returns a Supabase session on success.
- */
 authRoutes.post('/verify-otp', zValidator('json', VerifyOtpSchema), async c => {
   const { phone, otp } = c.req.valid('json')
   const result = await verifyOtp(phone, otp)
@@ -46,20 +39,12 @@ authRoutes.post('/verify-otp', zValidator('json', VerifyOtpSchema), async c => {
   return c.json({ message: result.message, verified: true })
 })
 
-/**
- * POST /auth/sign-in/check
- * Public — returns whether the phone belongs to a registered ParkSafe owner.
- */
 authRoutes.post('/sign-in/check', zValidator('json', RequestOtpSchema), async c => {
   const { phone } = c.req.valid('json')
   const registered = await isPhoneRegistered(phone)
   return c.json({ registered })
 })
 
-/**
- * POST /auth/sign-in
- * Public — verifies OTP and returns a session for an existing owner account.
- */
 authRoutes.post('/sign-in', zValidator('json', VerifyOtpSchema), async c => {
   const { phone, otp } = c.req.valid('json')
 
@@ -86,4 +71,29 @@ authRoutes.post('/sign-in', zValidator('json', VerifyOtpSchema), async c => {
     console.error('[auth] sign-in failed:', err instanceof Error ? err.message : err)
     return c.json({ error: 'Sign in failed. Please try again.' }, 500)
   }
+})
+
+authRoutes.post('/refresh', zValidator('json', RefreshTokenSchema), async c => {
+  const { refreshToken } = c.req.valid('json')
+
+  try {
+    const tokens = await refreshSession(refreshToken)
+    return c.json({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      userId: tokens.userId,
+    })
+  } catch (err) {
+    if (err instanceof AuthError) {
+      const status = err.code === 'REUSE_DETECTED' ? 401 : 401
+      return c.json({ error: err.message, code: err.code }, status)
+    }
+    return c.json({ error: 'Failed to refresh session' }, 500)
+  }
+})
+
+authRoutes.post('/logout', zValidator('json', RefreshTokenSchema), async c => {
+  const { refreshToken } = c.req.valid('json')
+  await revokeSession(refreshToken)
+  return c.json({ success: true })
 })

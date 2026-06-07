@@ -48,7 +48,10 @@ export const msg91Adapter = {
       }
 
       const data = (await res.json()) as { request_id?: string }
-      return { success: true, providerMessageId: data.request_id }
+      return {
+        success: true,
+        ...(data.request_id ? { providerMessageId: data.request_id } : {}),
+      }
     } catch (err) {
       const error = err instanceof Error ? err.message : 'MSG91 SMS failed'
       console.error('[msg91] SMS dispatch failed:', error)

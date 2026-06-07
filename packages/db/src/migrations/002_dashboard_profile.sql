@@ -34,13 +34,4 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- RLS for user_settings (service role bypasses; owners manage own row)
-ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
-
-DO $$ BEGIN
-  CREATE POLICY user_settings_own_data ON user_settings
-    FOR ALL
-    USING (auth.uid() = user_id);
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
+-- RLS removed — ownership enforced in apps/api (see 003_custom_auth.sql)

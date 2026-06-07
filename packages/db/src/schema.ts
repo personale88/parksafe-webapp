@@ -39,19 +39,41 @@ export const tagStatusEnum = pgEnum('tag_status', ['UNREGISTERED', 'ACTIVE', 'IN
 export const relayStatusEnum = pgEnum('relay_status', ['PENDING', 'DELIVERED', 'FAILED'])
 
 // ── Users ─────────────────────────────────────────────────────────────────────
-// Extends Supabase auth.users — do NOT store auth data here.
-// Phone is never stored raw — only an HMAC hash for lookups.
+// App-owned user profiles. Auth sessions are separate (auth_sessions table).
+// Phone is never stored raw — HMAC hash for lookups, encrypted blob for relay.
 export const users = pgTable('users', {
-  /** References auth.users.id from Supabase Auth */
-  id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   displayName: text('display_name').notNull(),
-  /** HMAC(phone, secret) — enables rate limiting without exposing raw number */
+  /** HMAC(phone, secret) — enables login lookup without exposing raw number */
   phoneHash: text('phone_hash').notNull().unique(),
+  /** AES-256-GCM encrypted E.164 phone — server-only, never returned to clients */
+  phoneEncrypted: text('phone_encrypted'),
   /** Optional email for account recovery */
   email: text('email'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
+
+// ── Auth Sessions (refresh token rotation) ────────────────────────────────────
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    refreshTokenHash: text('refresh_token_hash').notNull(),
+    familyId: uuid('family_id').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    revokedAt: timestamp('revoked_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  t => ({
+    userIdx: index('auth_sessions_user_idx').on(t.userId),
+    refreshHashIdx: index('auth_sessions_refresh_hash_idx').on(t.refreshTokenHash),
+    familyIdx: index('auth_sessions_family_idx').on(t.familyId),
+  })
+)
 
 // ── Vehicles ──────────────────────────────────────────────────────────────────
 export const vehicles = pgTable(

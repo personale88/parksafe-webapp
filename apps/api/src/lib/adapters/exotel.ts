@@ -59,7 +59,11 @@ export const exotelAdapter = {
       }
 
       const data = (await res.json()) as { Call?: { Sid?: string } }
-      return { success: true, providerCallId: data.Call?.Sid }
+      const callId = data.Call?.Sid
+      return {
+        success: true,
+        ...(callId ? { providerCallId: callId } : {}),
+      }
     } catch (err) {
       const error = err instanceof Error ? err.message : 'Exotel call failed'
       console.error('[exotel] Call initiation failed:', error)

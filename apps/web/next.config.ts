@@ -44,7 +44,6 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob:",
               [
                 "connect-src 'self'",
-                'https://*.supabase.co',
                 'https://app.posthog.com',
                 'https://graph.facebook.com',
                 isDev ? apiOrigin : '',

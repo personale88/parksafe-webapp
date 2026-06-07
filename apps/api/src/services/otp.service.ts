@@ -8,6 +8,7 @@
 import crypto from 'node:crypto'
 import { redis } from '../lib/redis'
 import { isOtpDevMode } from '../types/env'
+import { sendOtpSms } from './relay.service'
 
 const OTP_TTL_SECONDS = 300 // 5 minutes
 const MAX_ATTEMPTS = 3
@@ -73,7 +74,6 @@ export async function requestOtp(phone: string): Promise<OtpRequestResult> {
     const hashPrefix = hash.slice(0, 8)
     console.log(`[otp.dev] OTP for hash ${hashPrefix}…: ${otp}`)
   } else {
-    const { sendOtpSms } = await import('./relay.service')
     await sendOtpSms(phone, otp)
   }
 

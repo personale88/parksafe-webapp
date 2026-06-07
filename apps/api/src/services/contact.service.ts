@@ -1,18 +1,17 @@
 /**
- * apps/api/src/services/contact.service.ts
- * Contact relay business logic — owner phone resolution, note filtering, dispatch, audit.
- * Owner phone is resolved server-side only and NEVER returned to the client.
+ * Contact relay — owner phone resolved server-side only, never returned to client.
  */
 
 import crypto from 'node:crypto'
 import type { ChannelType, IssueType } from '@parksafe/types'
-import { supabase } from '../lib/supabase'
 import { getTagByCode } from './tag.service'
 import { dispatchRelay } from './relay.service'
 import { auditContactEvent } from './audit.service'
 import { filterNote } from './profanity.service'
 import { isOtpDevMode } from '../types/env'
 import { incrementDevReports } from './dev-store'
+import { decryptOwnerPhone } from '../repositories/users.repository'
+import { findTagByCode } from '../repositories/tags.repository'
 
 interface ContactRequestInput {
   tagId: string
@@ -31,26 +30,12 @@ interface ContactRequestResult {
 }
 
 /**
- * Resolves the owner's phone number for relay dispatch.
- * Uses Supabase Vault RPC when available — placeholder until vault integration is complete.
- * @param tagId - Internal tag UUID linked to the owner account
+ * Resolves owner phone for relay dispatch by owner user ID.
  */
-export async function resolveOwnerPhone(tagId: string): Promise<string | null> {
-  const { data: ownerData } = await supabase
-    .from('users')
-    .select('phone_hash')
-    .eq('id', tagId)
-    .single()
-
-  // Vault RPC will replace this cast once decrypt_owner_phone is wired up
-  const row = ownerData as { owner_phone?: string } | null
-  return row?.owner_phone ?? null
+export async function resolveOwnerPhone(ownerId: string): Promise<string | null> {
+  return decryptOwnerPhone(ownerId)
 }
 
-/**
- * Processes a reporter contact request end-to-end.
- * Validates tag status, resolves owner phone, filters note, dispatches relay, and audits.
- */
 export async function processContactRequest(
   input: ContactRequestInput
 ): Promise<ContactRequestResult> {
@@ -74,8 +59,13 @@ export async function processContactRequest(
     }
   }
 
-  const ownerPhone = await resolveOwnerPhone(tagResult.tag.tagId)
+  const tagRow = await findTagByCode(tagId)
+  const ownerId = tagRow?.ownerId
+  if (!ownerId) {
+    return { success: false, error: 'Unable to reach vehicle owner at this time', status: 503 }
+  }
 
+  const ownerPhone = await resolveOwnerPhone(ownerId)
   if (!ownerPhone) {
     return {
       success: false,
@@ -90,7 +80,7 @@ export async function processContactRequest(
     ownerPhone,
     issueType,
     channel,
-    customNote: filteredNote,
+    ...(filteredNote !== undefined ? { customNote: filteredNote } : {}),
   })
 
   if (isOtpDevMode && reporterUserId) {
@@ -99,13 +89,13 @@ export async function processContactRequest(
 
   void auditContactEvent({
     tagId: tagResult.tag.tagId,
-    vehicleId: undefined,
     reporterSessionId: sessionId,
-    reporterUserId,
     issueType,
     channel,
-    customNote: filteredNote,
     relaySuccess: relayResult.success,
+    ...(tagRow?.vehicleId ? { vehicleId: tagRow.vehicleId } : {}),
+    ...(reporterUserId !== undefined ? { reporterUserId } : {}),
+    ...(filteredNote !== undefined ? { customNote: filteredNote } : {}),
   })
 
   if (!relayResult.success) {

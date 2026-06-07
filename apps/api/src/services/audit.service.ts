@@ -1,19 +1,15 @@
 /**
- * apps/api/src/services/audit.service.ts
- * Logs contact events to the database for owner history and abuse detection.
- * CRITICAL: No reporter PII is ever stored — only hashed session identifiers.
+ * Logs contact events — no reporter PII stored.
  */
 
 import crypto from 'node:crypto'
-import { supabase } from '../lib/supabase'
 import type { IssueType, ChannelType } from '@parksafe/types'
+import { insertContactEvent } from '../repositories/contactEvents.repository'
 
 interface AuditContactEventOptions {
   tagId: string
   vehicleId?: string
-  /** Raw session ID — HMAC-hashed before storage, never stored raw */
   reporterSessionId: string
-  /** Authenticated reporter — optional, never includes phone */
   reporterUserId?: string
   issueType: IssueType
   channel: ChannelType
@@ -21,10 +17,6 @@ interface AuditContactEventOptions {
   relaySuccess: boolean
 }
 
-/**
- * Hashes a session ID using HMAC-SHA256.
- * Enables abuse pattern detection without exposing reporter identity.
- */
 function hashSessionId(sessionId: string): string {
   return crypto
     .createHmac('sha256', process.env['SESSION_SIGNING_SECRET'] ?? '')
@@ -33,30 +25,21 @@ function hashSessionId(sessionId: string): string {
 }
 
 /**
- * Records a contact event in the audit log.
- * Fires and forgets — relay dispatch should not block on audit writes.
- * @param opts - Contact event details (no raw PII)
+ * Records a contact event in the audit log (fire-and-forget).
  */
 export async function auditContactEvent(opts: AuditContactEventOptions): Promise<void> {
-  const sessionHash = hashSessionId(opts.reporterSessionId)
-
-  const row: Record<string, unknown> = {
-    tag_id: opts.tagId,
-    vehicle_id: opts.vehicleId,
-    reporter_session_hash: sessionHash,
-    issue_type: opts.issueType,
-    channel: opts.channel,
-    custom_note: opts.customNote ?? null,
-    relay_status: opts.relaySuccess ? 'DELIVERED' : 'FAILED',
-  }
-  if (opts.reporterUserId) {
-    row['reporter_user_id'] = opts.reporterUserId
-  }
-
-  const { error } = await supabase.from('contact_events').insert(row)
-
-  if (error) {
-    // Audit failures must not surface to the user — log and continue
-    console.error('[audit] Failed to write contact event:', error.message)
+  try {
+    await insertContactEvent({
+      tagId: opts.tagId,
+      reporterSessionHash: hashSessionId(opts.reporterSessionId),
+      issueType: opts.issueType,
+      channel: opts.channel,
+      relaySuccess: opts.relaySuccess,
+      ...(opts.vehicleId !== undefined ? { vehicleId: opts.vehicleId } : {}),
+      ...(opts.reporterUserId !== undefined ? { reporterUserId: opts.reporterUserId } : {}),
+      ...(opts.customNote !== undefined ? { customNote: opts.customNote } : {}),
+    })
+  } catch (err) {
+    console.error('[audit] Failed to write contact event:', err instanceof Error ? err.message : err)
   }
 }

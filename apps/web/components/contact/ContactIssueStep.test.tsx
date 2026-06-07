@@ -27,7 +27,8 @@ describe('ContactIssueStep', () => {
     )
 
     expect(screen.getByText('Step 1 of 2')).toBeInTheDocument()
-    expect(screen.getByText('Toyota Camry')).toBeInTheDocument()
+    expect(screen.getByText('Toyota')).toBeInTheDocument()
+    expect(screen.getByText('Camry')).toBeInTheDocument()
     expect(screen.getByText("What's the issue?")).toBeInTheDocument()
   })
 })

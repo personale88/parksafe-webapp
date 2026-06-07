@@ -1,11 +1,10 @@
 import { createMiddleware } from 'hono/factory'
-import { supabase } from '../lib/supabase'
+import { verifyAccessToken } from '../services/auth.service'
 import { isOtpDevMode } from '../types/env'
 import { parseDevSessionToken } from '../services/dev-registration'
 
 /**
- * Supabase JWT auth middleware.
- * Validates the Bearer token from the Authorization header.
+ * JWT auth middleware — validates Bearer access token.
  * In OTP dev mode, accepts locally issued dev-session tokens.
  */
 export const authMiddleware = createMiddleware<{
@@ -28,16 +27,11 @@ export const authMiddleware = createMiddleware<{
     }
   }
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token)
-
-  if (error || !user) {
+  try {
+    const { userId } = await verifyAccessToken(token)
+    c.set('userId', userId)
+    await next()
+  } catch {
     return c.json({ error: 'Invalid or expired session' }, 401)
   }
-
-  c.set('userId', user.id)
-
-  await next()
 })

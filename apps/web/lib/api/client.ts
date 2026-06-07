@@ -30,25 +30,119 @@ export class ApiError extends Error {
 
 interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: Record<string, unknown>
+  /** Internal — prevents infinite refresh retry loops */
+  _skipRefresh?: boolean
+}
+
+let refreshInFlight: Promise<boolean> | null = null
+
+/**
+ * Attempts a silent token refresh using the stored refresh token.
+ * Returns true if the access token was updated.
+ */
+async function trySilentRefresh(): Promise<boolean> {
+  if (typeof window === 'undefined') return false
+
+  const { useAuthStore } = await import('@/lib/store/authStore')
+  const { refreshToken, updateAccessToken, clearSession } = useAuthStore.getState()
+
+  if (!refreshToken) return false
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const result = await rawApiFetch<{
+          accessToken: string
+          refreshToken: string
+          userId: string
+        }>('/auth/refresh', {
+          method: 'POST',
+          body: { refreshToken },
+        })
+        updateAccessToken(result.accessToken, result.refreshToken)
+        return true
+      } catch {
+        clearSession()
+        return false
+      } finally {
+        refreshInFlight = null
+      }
+    })()
+  }
+
+  return refreshInFlight
 }
 
 /**
- * Makes a typed fetch request to the ParkSafe API.
- * Throws ApiError on non-2xx responses — never throws untyped errors.
- * @param path - API path relative to API_BASE (e.g. /tags/abc-123)
- * @param options - Fetch options with typed body
+ * Low-level fetch without 401 refresh retry — used by auth endpoints.
  */
-export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { body, headers, ...rest } = options
+export async function rawApiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
+  const { body, headers, _skipRefresh: _, ...rest } = options
 
-  const res = await fetch(`${getApiBase()}${path}`, {
+  const init: RequestInit = {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
       ...headers,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  }
+  if (body !== undefined) {
+    init.body = JSON.stringify(body)
+  }
+
+  const res = await fetch(`${getApiBase()}${path}`, init)
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
+    throw new ApiError(
+      (errorData as { error?: string }).error ?? `HTTP ${res.status}`,
+      res.status,
+      (errorData as { code?: string }).code
+    )
+  }
+
+  return res.json() as Promise<T>
+}
+
+/**
+ * Makes a typed fetch request to the ParkSafe API.
+ * On 401, attempts one silent refresh + retry before throwing.
+ */
+export async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
+  const { body, headers, _skipRefresh, ...rest } = options
+
+  const buildInit = (extraHeaders?: HeadersInit): RequestInit => {
+    const init: RequestInit = {
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+        ...extraHeaders,
+      },
+    }
+    if (body !== undefined) {
+      init.body = JSON.stringify(body)
+    }
+    return init
+  }
+
+  const doFetch = async (): Promise<Response> => {
+    return fetch(`${getApiBase()}${path}`, buildInit())
+  }
+
+  let res = await doFetch()
+
+  if (res.status === 401 && !_skipRefresh && typeof window !== 'undefined') {
+    const refreshed = await trySilentRefresh()
+    if (refreshed) {
+      const { useAuthStore } = await import('@/lib/store/authStore')
+      const newToken = useAuthStore.getState().token
+      res = await fetch(
+        `${getApiBase()}${path}`,
+        buildInit(newToken ? { Authorization: `Bearer ${newToken}` } : undefined)
+      )
+    }
+  }
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))

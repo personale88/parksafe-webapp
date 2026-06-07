@@ -45,9 +45,10 @@ export const whatsappAdapter = {
       }
 
       const data = (await res.json()) as { messages?: Array<{ id: string }> }
+      const messageId = data.messages?.[0]?.id
       return {
         success: true,
-        providerMessageId: data.messages?.[0]?.id,
+        ...(messageId ? { providerMessageId: messageId } : {}),
       }
     } catch (err) {
       const error = err instanceof Error ? err.message : 'WhatsApp dispatch failed'

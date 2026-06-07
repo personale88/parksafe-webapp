@@ -28,10 +28,13 @@ export const twilioAdapter = {
     try {
       const message = await client.messages.create({
         to: options.to,
-        from: env.TWILIO_RELAY_NUMBER,
+        from: env.TWILIO_RELAY_NUMBER ?? '+919999999999',
         body: options.body,
       })
-      return { success: true, providerMessageId: message.sid }
+      return {
+        success: true,
+        ...(message.sid ? { providerMessageId: message.sid } : {}),
+      }
     } catch (err) {
       const error = err instanceof Error ? err.message : 'Twilio SMS failed'
       // Log sanitised error — no phone number in log output

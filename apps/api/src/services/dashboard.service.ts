@@ -1,9 +1,7 @@
 /**
- * Dashboard aggregation — driving score, report counts, rewards, contact history.
- * All queries are scoped to the authenticated owner; no reporter PII is returned.
+ * Dashboard aggregation for authenticated owners.
  */
 
-import { supabase } from '../lib/supabase'
 import { isOtpDevMode } from '../types/env'
 import type { ContactEventSummary, DashboardSummary, Reward } from '@parksafe/types'
 import {
@@ -12,6 +10,15 @@ import {
   getDevReportsReceived,
   getDevVehicles,
 } from './dev-store'
+import { findUserById } from '../repositories/users.repository'
+import { countActiveVehicles } from '../repositories/vehicles.repository'
+import { listTagIdsByOwner } from '../repositories/tags.repository'
+import {
+  countEventsForTags,
+  findLatestEventForTags,
+  listReceivedEvents,
+} from '../repositories/contactEvents.repository'
+import { countSentEvents } from '../repositories/contactEvents.repository'
 import { mapReceivedContactEvent } from './reports.service'
 
 const MS_PER_DAY = 86_400_000
@@ -21,13 +28,7 @@ function daysBetween(start: Date, end: Date): number {
   return Math.max(0, Math.floor(diff / MS_PER_DAY))
 }
 
-/**
- * Computes consecutive safe days (no contact events on owner's vehicles).
- */
-function computeSafeDays(
-  accountCreatedAt: Date,
-  lastContactAt: Date | null
-): number {
+function computeSafeDays(accountCreatedAt: Date, lastContactAt: Date | null): number {
   const now = new Date()
   if (!lastContactAt) {
     return Math.min(999, daysBetween(accountCreatedAt, now))
@@ -72,13 +73,48 @@ function buildRewards(
   ]
 }
 
-/**
- * Fetches the full dashboard summary for an authenticated owner.
- */
+async function getDashboardFromDb(userId: string, fallbackName: string): Promise<DashboardSummary> {
+  const user = await findUserById(userId)
+  const displayName = user?.displayName ?? fallbackName
+  const accountCreatedAt = user?.createdAt ?? new Date()
+
+  const activeVehicles = await countActiveVehicles(userId)
+  const tagIds = await listTagIdsByOwner(userId)
+
+  let reportsReceived = 0
+  let lastContactAt: Date | null = null
+  let recentContacts: ContactEventSummary[] = []
+
+  if (tagIds.length > 0) {
+    reportsReceived = await countEventsForTags(tagIds)
+    lastContactAt = await findLatestEventForTags(tagIds)
+    const events = await listReceivedEvents(tagIds, 10)
+    recentContacts = await Promise.all(events.map(mapReceivedContactEvent))
+  }
+
+  const vehiclesReported = await countSentEvents(userId)
+  const safeDays = computeSafeDays(accountCreatedAt, lastContactAt)
+  const rewards = buildRewards(safeDays, reportsReceived, vehiclesReported)
+
+  return {
+    displayName,
+    activeVehicles,
+    safeDays,
+    reportsReceived,
+    vehiclesReported,
+    rewards,
+    recentContacts,
+  }
+}
+
 export async function getDashboardSummary(userId: string): Promise<DashboardSummary> {
   const fallbackName = 'Driver'
 
   if (isOtpDevMode) {
+    const dbUser = await findUserById(userId)
+    if (dbUser) {
+      return getDashboardFromDb(userId, fallbackName)
+    }
     const profile = getDevProfile(userId)
     const devVehicles = getDevVehicles(userId).filter(v => v.isActive)
     const safeDays = profile
@@ -97,104 +133,5 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
     }
   }
 
-  const [userResult, vehiclesResult, tagsResult] = await Promise.all([
-    supabase.from('users').select('display_name, created_at').eq('id', userId).single(),
-    supabase
-      .from('vehicles')
-      .select('id')
-      .eq('owner_id', userId)
-      .eq('is_active', true),
-    supabase.from('tags').select('id').eq('owner_id', userId),
-  ])
-
-  const displayName =
-    (userResult.data?.display_name as string | undefined) ?? fallbackName
-  const accountCreatedAt = userResult.data?.created_at
-    ? new Date(userResult.data.created_at as string)
-    : new Date()
-
-  const activeVehicles = vehiclesResult.data?.length ?? 0
-  const tagIds = (tagsResult.data ?? []).map(t => t.id as string)
-
-  let reportsReceived = 0
-  let vehiclesReported = 0
-  let lastContactAt: Date | null = null
-  let recentContacts: ContactEventSummary[] = []
-
-  if (tagIds.length > 0) {
-    const { count: receivedCount } = await supabase
-      .from('contact_events')
-      .select('id', { count: 'exact', head: true })
-      .in('tag_id', tagIds)
-
-    reportsReceived = receivedCount ?? 0
-
-    const { data: lastEvent } = await supabase
-      .from('contact_events')
-      .select('created_at')
-      .in('tag_id', tagIds)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (lastEvent?.created_at) {
-      lastContactAt = new Date(lastEvent.created_at as string)
-    }
-
-    const { data: receivedEvents, error: receivedError } = await supabase
-      .from('contact_events')
-      .select(
-        `
-        id,
-        issue_type,
-        channel,
-        created_at,
-        vehicles (
-          make,
-          model,
-          colour,
-          plate_partial,
-          plate_encrypted
-        ),
-        tags (
-          vehicles (
-            make,
-            model,
-            colour,
-            plate_partial,
-            plate_encrypted
-          )
-        )
-      `
-      )
-      .in('tag_id', tagIds)
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    if (!receivedError && receivedEvents) {
-      recentContacts = await Promise.all(
-        receivedEvents.map(e => mapReceivedContactEvent(e as Record<string, unknown>))
-      )
-    }
-  }
-
-  const { count: reportedCount } = await supabase
-    .from('contact_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('reporter_user_id', userId)
-
-  vehiclesReported = reportedCount ?? 0
-
-  const safeDays = computeSafeDays(accountCreatedAt, lastContactAt)
-  const rewards = buildRewards(safeDays, reportsReceived, vehiclesReported)
-
-  return {
-    displayName,
-    activeVehicles,
-    safeDays,
-    reportsReceived,
-    vehiclesReported,
-    rewards,
-    recentContacts,
-  }
+  return getDashboardFromDb(userId, fallbackName)
 }

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils/cn'
 export function SignInOtpContent() {
   const t = useTranslations()
   const router = useRouter()
-  const setSession = useAuthStore(s => s.setSession)
+  const setTokens = useAuthStore(s => s.setTokens)
 
   const [phoneDigits, setPhoneDigits] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +70,7 @@ export function SignInOtpContent() {
       try {
         const result = await signIn({ phone: phoneE164, otp: otpCode })
         clearSignInPhone()
-        setSession(result.accessToken, result.userId)
+        setTokens(result.accessToken, result.refreshToken, result.userId)
         router.push(routes.dashboard)
       } catch (err) {
         if (err instanceof ApiError && err.code === SIGN_IN_NOT_REGISTERED_CODE) {
@@ -83,7 +83,7 @@ export function SignInOtpContent() {
         setIsVerifying(false)
       }
     },
-    [phoneE164, router, setSession, t]
+    [phoneE164, router, setTokens, t]
   )
 
   const handleBack = () => {

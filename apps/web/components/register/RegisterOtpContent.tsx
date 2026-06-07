@@ -22,7 +22,7 @@ export function RegisterOtpContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tagFromUrl = searchParams.get('tag') ?? undefined
-  const setSession = useAuthStore(s => s.setSession)
+  const setTokens = useAuthStore(s => s.setTokens)
 
   const [ready, setReady] = useState(false)
   const [phoneDigits, setPhoneDigits] = useState('')
@@ -73,7 +73,7 @@ export function RegisterOtpContent() {
 
         const result = await registerVehicle(payload)
         clearRegisterDraft()
-        setSession(result.accessToken, result.userId)
+        setTokens(result.accessToken, result.refreshToken, result.userId)
         router.replace(routes.registerSuccess)
       } catch (err) {
         const message =
@@ -87,7 +87,7 @@ export function RegisterOtpContent() {
         setIsSubmitting(false)
       }
     },
-    [handleClose, router, setSession, t, tagFromUrl]
+    [handleClose, router, setTokens, t, tagFromUrl]
   )
 
   const handleResendOtp = useCallback(async () => {
