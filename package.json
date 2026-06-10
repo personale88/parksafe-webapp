@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "postinstall": "turbo build --filter=@parksafe/types --filter=@parksafe/db",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "type-check": "turbo type-check",

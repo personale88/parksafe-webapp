@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs watch src/server.ts",
     "build": "tsc -p tsconfig.json",
+    "prestart": "pnpm -w turbo build --filter=@parksafe/types --filter=@parksafe/db --force",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
