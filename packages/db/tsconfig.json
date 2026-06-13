@@ -12,11 +12,6 @@
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
-    "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
     "sourceMap": true
   },
   "include": ["src/**/*.ts"],
