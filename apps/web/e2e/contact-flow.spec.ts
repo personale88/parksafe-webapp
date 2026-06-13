@@ -37,7 +37,7 @@ test.describe('Contact Owner Flow', () => {
     await page.goto('/contact/unregistered-tag-uuid')
 
     await expect(page.getByText('Tag not activated')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Get ParkSafe' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Register vehicle' })).toBeVisible()
   })
 
   test('shows inactive tag screen for paused tags', async ({ page }) => {

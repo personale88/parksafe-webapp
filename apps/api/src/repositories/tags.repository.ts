@@ -9,7 +9,7 @@ import { getDb } from '../lib/db'
 export interface TagWithVehicleRow {
   id: string
   tagCode: string
-  status: 'UNREGISTERED' | 'ACTIVE' | 'INACTIVE'
+ status: 'UNREGISTERED' | 'ACTIVE' | 'INACTIVE'
   ownerId: string | null
   vehicleId: string | null
   notifySms: boolean
@@ -137,4 +137,54 @@ export async function activateTag(
     .returning({ id: tags.id })
 
   return rows.length > 0
+}
+
+export async function createTag(tagCode: string) {
+  const db = getDb()
+  if (!db) return null
+
+  const rows = await db
+    .insert(tags)
+    .values({
+      tagCode,
+      status: 'UNREGISTERED' as const,
+    })
+    .returning()
+
+  return rows[0] ?? null
+}
+
+export async function getAllTags() {
+  const db = getDb()
+  if (!db) return []
+
+  return await db.select().from(tags)
+}
+
+export async function deleteTag(tagCode: string) {
+  const db = getDb()
+  if (!db) return false
+
+  const rows = await db
+    .delete(tags)
+    .where(eq(tags.tagCode, tagCode))
+    .returning({
+      id: tags.id,
+    })
+
+  return rows.length > 0
+}
+export async function createBulkTags(tagCodes: string[]) {
+  const db = getDb()
+  if (!db) return []
+
+  return await db
+    .insert(tags)
+    .values(
+      tagCodes.map(tagCode => ({
+        tagCode,
+        status: 'UNREGISTERED' as const,
+      }))
+    )
+    .returning()
 }

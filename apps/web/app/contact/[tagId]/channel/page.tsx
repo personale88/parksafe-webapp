@@ -5,6 +5,7 @@ import { ContactStatusScreen } from '@/components/contact/ContactStatusScreen'
 import { buildContactPaths } from '@/lib/contact/paths'
 import { parseIssueParam } from '@/lib/contact/parseIssue'
 import { resolveContactTag } from '@/lib/contact/resolveContactTag'
+import { routes } from '@/lib/routes'
 import { en } from '@/content/en'
 
 export const metadata: Metadata = {
@@ -47,7 +48,7 @@ export default async function ContactTagChannelPage({ params, searchParams }: Pr
         emoji="🏷️"
         title={en.CONTACT_TAG_NOT_ACTIVATED_TITLE}
         body={en.CONTACT_TAG_NOT_ACTIVATED_BODY}
-        cta={{ label: en.CONTACT_TAG_NOT_ACTIVATED_CTA, href: en.GLOBAL_SITE_URL }}
+        cta={{ label: en.CONTACT_TAG_NOT_ACTIVATED_CTA, href: routes.register({ tag: tagId }) }}
       />
     )
   }

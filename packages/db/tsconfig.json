@@ -8,6 +8,8 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "rootDir": "src",
+    "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
     "outDir": "dist",
@@ -15,4 +17,8 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/migrate.ts", "src/seed.ts"]
 }

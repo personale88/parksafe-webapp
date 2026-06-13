@@ -63,8 +63,15 @@ app.notFound(c => c.json({ error: 'Not found' }, 404))
 // ── Error Handler ─────────────────────────────────────────────────────────────
 app.onError((err, c) => {
   // Log sanitised error — never include request body or PII
-  console.error('[api] Unhandled error:', err.message)
-  return c.json({ error: 'Internal server error' }, 500)
+  console.error('[api] Unhandled error:', err)
+
+return c.json(
+  {
+    error: err instanceof Error ? err.message : String(err),
+  },
+  500
+)
+  
 })
 
 export default app

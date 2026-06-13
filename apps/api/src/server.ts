@@ -29,4 +29,4 @@ if (process.env.NODE_ENV === 'development' && process.env['DATABASE_URL']) {
 
 console.log(`[api] ParkSafe API listening on http://localhost:${port}`)
 
-serve({ fetch: app.fetch, port })
+serve({ fetch: app.fetch, port, hostname: '0.0.0.0' })

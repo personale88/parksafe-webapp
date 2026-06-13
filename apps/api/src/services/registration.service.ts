@@ -18,6 +18,7 @@ import {
   UserAlreadyExistsError,
 } from '../repositories/users.repository'
 import { activateTag as activateTagInDb } from '../repositories/tags.repository'
+import { getDb } from '../lib/db'
 import type { RegisterVehicleInput, Vehicle } from '@parksafe/types'
 
 interface RegistrationResult {
@@ -43,7 +44,7 @@ export async function registerVehicle(
     return { success: false, error: otpResult.message }
   }
 
-  if (isOtpDevMode) {
+  if (isOtpDevMode && !getDb()) {
     const userId = createDevUserId()
     const { accessToken, refreshToken } = createDevSession(userId)
     const vehicle = createDevVehicle(userId, {
@@ -106,7 +107,9 @@ export async function registerVehicle(
       }
     }
 
-    const tokens = await issueTokenPair(user.id)
+    const tokens = isOtpDevMode
+      ? createDevSession(user.id)
+      : await issueTokenPair(user.id)
 
     return {
       success: true,

@@ -21,5 +21,11 @@ export default defineConfig({
     command: 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env['CI'],
+    cwd: '../..',
+    env: {
+      ...process.env,
+      ADMIN_API_KEY:
+        process.env['ADMIN_API_KEY'] ?? 'parksafe-admin-development-key-123456789',
+    },
   },
 })

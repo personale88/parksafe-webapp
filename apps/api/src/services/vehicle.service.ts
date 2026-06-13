@@ -16,6 +16,7 @@ import {
   listVehiclesByOwner,
   softDeleteVehicle,
 } from '../repositories/vehicles.repository'
+import { getDb } from '../lib/db'
 
 function mapVehicleRow(
   row: {
@@ -42,7 +43,7 @@ function mapVehicleRow(
 }
 
 export async function getVehiclesByOwner(ownerId: string): Promise<Vehicle[]> {
-  if (isOtpDevMode) {
+  if (isOtpDevMode && !getDb()) {
     return getDevVehicles(ownerId).filter(v => v.isActive)
   }
 
@@ -54,7 +55,7 @@ export async function createVehicle(
   ownerId: string,
   input: CreateVehicleInput
 ): Promise<{ success: boolean; vehicle?: Vehicle; error?: string }> {
-  if (isOtpDevMode) {
+  if (isOtpDevMode && !getDb()) {
     const vehicle = createDevVehicle(ownerId, input)
     addDevVehicle(ownerId, input, vehicle)
     return { success: true, vehicle }
@@ -73,7 +74,7 @@ export async function deleteVehicle(
   vehicleId: string,
   ownerId: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (isOtpDevMode) {
+  if (isOtpDevMode && !getDb()) {
     const ok = deactivateDevVehicle(ownerId, vehicleId)
     return ok ? { success: true } : { success: false, error: 'Vehicle not found' }
   }

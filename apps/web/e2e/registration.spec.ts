@@ -12,8 +12,14 @@ test.describe('Register start (QR scan entry)', () => {
   })
 
   test('redirects bare /register to start page', async ({ page }) => {
-    await page.goto(REGISTER_WITH_TAG)
+    await page.goto('/register')
     await expect(page).toHaveURL(/\/register\/start/)
+  })
+
+  test('with tag query opens registration form', async ({ page }) => {
+    await page.goto(REGISTER_WITH_TAG)
+    await expect(page).toHaveURL(/\/register\?tag=/)
+    await expect(page.getByRole('heading', { name: 'Register Your Vehicle' })).toBeVisible()
   })
 })
 

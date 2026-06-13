@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { ContactIssueStep } from '@/components/contact/ContactIssueStep'
 import { ContactStatusScreen } from '@/components/contact/ContactStatusScreen'
 import { resolveContactTag } from '@/lib/contact/resolveContactTag'
+import { routes } from '@/lib/routes'
 import { en } from '@/content/en'
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default async function ContactTagIssuePage({ params }: Props) {
         emoji="🏷️"
         title={en.CONTACT_TAG_NOT_ACTIVATED_TITLE}
         body={en.CONTACT_TAG_NOT_ACTIVATED_BODY}
-        cta={{ label: en.CONTACT_TAG_NOT_ACTIVATED_CTA, href: en.GLOBAL_SITE_URL }}
+        cta={{ label: en.CONTACT_TAG_NOT_ACTIVATED_CTA, href: routes.register({ tag: tagId }) }}
       />
     )
   }

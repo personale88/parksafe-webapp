@@ -36,6 +36,8 @@ function generateOtp(): string {
 interface OtpRequestResult {
   success: boolean
   message: string
+  /** Present in OTP dev mode only — for local E2E and manual testing. */
+  devOtp?: string
 }
 
 interface OtpVerifyResult {
@@ -73,9 +75,10 @@ export async function requestOtp(phone: string): Promise<OtpRequestResult> {
     // Local dev — log OTP keyed by phone hash only; never log raw phone numbers
     const hashPrefix = hash.slice(0, 8)
     console.log(`[otp.dev] OTP for hash ${hashPrefix}…: ${otp}`)
-  } else {
-    await sendOtpSms(phone, otp)
+    return { success: true, message: 'OTP sent', devOtp: otp }
   }
+
+  await sendOtpSms(phone, otp)
 
   return { success: true, message: 'OTP sent' }
 }

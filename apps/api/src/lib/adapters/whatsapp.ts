@@ -1,4 +1,5 @@
-import { env } from '../../types/env'
+import crypto from 'node:crypto'
+import { env, isOtpDevMode } from '../../types/env'
 
 interface WhatsAppOptions {
   /** Recipient phone in E.164 format */
@@ -22,6 +23,11 @@ export const whatsappAdapter = {
    * @param options - Recipient phone and message body
    */
   async sendMessage(options: WhatsAppOptions): Promise<WhatsAppResult> {
+    if (isOtpDevMode) {
+      console.log('[whatsapp.dev] Relay simulated (dev mode, no Meta API call)')
+      return { success: true, providerMessageId: `dev-wa-${crypto.randomUUID()}` }
+    }
+
     const url = `https://graph.facebook.com/v19.0/${env.WHATSAPP_PHONE_ID}/messages`
 
     try {

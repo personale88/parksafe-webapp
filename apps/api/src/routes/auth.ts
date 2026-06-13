@@ -20,7 +20,10 @@ authRoutes.post('/request-otp', zValidator('json', RequestOtpSchema), async c =>
     if (!result.success) {
       return c.json({ error: result.message }, 429)
     }
-    return c.json({ message: result.message })
+    return c.json({
+      message: result.message,
+      ...(result.devOtp !== undefined ? { devOtp: result.devOtp } : {}),
+    })
   } catch (err) {
     console.error('[auth] request-otp failed:', err instanceof Error ? err.message : err)
     return c.json({ error: 'Failed to send OTP. Please try again.' }, 500)

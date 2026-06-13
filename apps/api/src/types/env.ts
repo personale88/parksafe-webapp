@@ -62,9 +62,17 @@ const DEV_ENV_DEFAULTS: Record<string, string> = {
   SITE_URL: 'http://localhost:3000',
 }
 
+function isOtpDevModeEnabled(nodeEnv: Env['NODE_ENV']): boolean {
+  return (
+    process.env.OTP_DEV_MODE === 'true' ||
+    (nodeEnv === 'development' && process.env.OTP_DEV_MODE !== 'false')
+  )
+}
+
 function loadEnv(): Env {
   const nodeEnv = (process.env.NODE_ENV ?? 'development') as Env['NODE_ENV']
-  const otpDevMode = nodeEnv === 'development' && process.env.OTP_DEV_MODE !== 'false'
+  const otpDevMode = isOtpDevModeEnabled(nodeEnv)
+
   const useDevDefaults =
     otpDevMode && process.env.USE_PRODUCTION_ENV !== 'true' && !process.env.DATABASE_URL
 
@@ -77,30 +85,42 @@ function loadEnv(): Env {
     merged['ADMIN_API_KEY'] = DEV_ENV_DEFAULTS['ADMIN_API_KEY']
   }
 
-  const parsed = baseEnvSchema.parse(merged)
+  try {
+    const parsed = baseEnvSchema.parse(merged)
 
-  if (!otpDevMode) {
-    const productionRequired = z.object({
-      DATABASE_URL: z.string().url(),
-      JWT_ACCESS_SECRET: z.string().min(32),
-      JWT_REFRESH_SECRET: z.string().min(32),
-      PII_ENCRYPTION_KEY: z.string().min(32),
-      TWILIO_ACCOUNT_SID: z.string().min(1),
-      TWILIO_AUTH_TOKEN: z.string().min(1),
-      TWILIO_RELAY_NUMBER: z.string().regex(/^\+\d{10,15}$/),
-      WHATSAPP_ACCESS_TOKEN: z.string().min(1),
-      WHATSAPP_PHONE_ID: z.string().min(1),
-      UPSTASH_REDIS_REST_URL: z.string().url(),
-      UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
-    })
-    productionRequired.parse(merged)
+    if (!otpDevMode) {
+      const productionRequired = z.object({
+        DATABASE_URL: z.string().url(),
+        JWT_ACCESS_SECRET: z.string().min(32),
+        JWT_REFRESH_SECRET: z.string().min(32),
+        PII_ENCRYPTION_KEY: z.string().min(32),
+        TWILIO_ACCOUNT_SID: z.string().min(1),
+        TWILIO_AUTH_TOKEN: z.string().min(1),
+        TWILIO_RELAY_NUMBER: z.string().regex(/^\+\d{10,15}$/),
+        WHATSAPP_ACCESS_TOKEN: z.string().min(1),
+        WHATSAPP_PHONE_ID: z.string().min(1),
+        UPSTASH_REDIS_REST_URL: z.string().url(),
+        UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+      })
+      productionRequired.parse(merged)
+    }
+
+    return parsed
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      console.error('[api] Environment validation failed:')
+      for (const issue of err.issues) {
+        console.error(`  - ${issue.path.join('.')}: ${issue.message}`)
+      }
+      console.error(
+        '[api] Set missing variables in Railway → Variables. For staging, use OTP_DEV_MODE=true.'
+      )
+    }
+    throw err
   }
-
-  return parsed
 }
 
 export const env = loadEnv()
 
-/** Local dev: in-memory OTP store + dev-store. Set OTP_DEV_MODE=false for production path. */
-export const isOtpDevMode =
-  env.NODE_ENV === 'development' && process.env.OTP_DEV_MODE !== 'false'
+/** In-memory OTP store + dev defaults. Set OTP_DEV_MODE=false for full production path. */
+export const isOtpDevMode = isOtpDevModeEnabled(env.NODE_ENV)

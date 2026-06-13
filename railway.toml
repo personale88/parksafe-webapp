@@ -1,0 +1,6 @@
+[build]
+buildCommand = "pnpm install && pnpm turbo build --filter=@parksafe/types --filter=@parksafe/db --filter=@parksafe/api --force"
+
+[deploy]
+startCommand = "pnpm --filter @parksafe/api start"
+healthcheckPath = "/health"

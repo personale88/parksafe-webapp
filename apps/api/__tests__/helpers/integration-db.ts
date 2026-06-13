@@ -17,6 +17,7 @@ const MANUAL_MIGRATIONS = [
   '002_dashboard_profile.sql',
   '003_custom_auth.sql',
   '004_phone_and_sessions.sql',
+  '005_tag_batches.sql',
 ] as const
 
 const migrationsDir = pathJoin(
