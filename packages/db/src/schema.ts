@@ -137,7 +137,6 @@ export const tags = pgTable(
     ownerId: uuid('owner_id').references(() => users.id, { onDelete: 'set null' }),
     status: tagStatusEnum('status').default('UNREGISTERED').notNull(),
     /** Per-tag notification preferences — owner controls each independently */
-    notifySms: boolean('notify_sms').default(true).notNull(),
     notifyWhatsapp: boolean('notify_whatsapp').default(true).notNull(),
     /** Call relay is opt-in — disabled by default for privacy */
     callEnabled: boolean('call_enabled').default(false).notNull(),
@@ -189,7 +188,6 @@ export const userSettings = pgTable('user_settings', {
   userId: uuid('user_id')
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
-  notifySms: boolean('notify_sms').default(true).notNull(),
   notifyWhatsapp: boolean('notify_whatsapp').default(true).notNull(),
   marketingEmails: boolean('marketing_emails').default(false).notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

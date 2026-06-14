@@ -26,7 +26,6 @@ const receivedByOwner = new Map<string, ContactEventSummary[]>()
 const sentByReporter = new Map<string, ReportedVehicleEvent[]>()
 
 const DEFAULT_SETTINGS: UserSettings = {
-  notifySms: true,
   notifyWhatsapp: true,
   marketingEmails: false,
 }

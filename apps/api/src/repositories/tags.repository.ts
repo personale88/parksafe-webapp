@@ -12,7 +12,6 @@ export interface TagWithVehicleRow {
  status: 'UNREGISTERED' | 'ACTIVE' | 'INACTIVE'
   ownerId: string | null
   vehicleId: string | null
-  notifySms: boolean
   notifyWhatsapp: boolean
   callEnabled: boolean
   vehicleMake: string | null
@@ -32,7 +31,6 @@ export async function findTagByCode(tagCode: string): Promise<TagWithVehicleRow 
       status: tags.status,
       ownerId: tags.ownerId,
       vehicleId: tags.vehicleId,
-      notifySms: tags.notifySms,
       notifyWhatsapp: tags.notifyWhatsapp,
       callEnabled: tags.callEnabled,
       vehicleMake: vehicles.make,
@@ -60,7 +58,6 @@ export async function findTagById(tagId: string): Promise<TagWithVehicleRow | nu
       status: tags.status,
       ownerId: tags.ownerId,
       vehicleId: tags.vehicleId,
-      notifySms: tags.notifySms,
       notifyWhatsapp: tags.notifyWhatsapp,
       callEnabled: tags.callEnabled,
       vehicleMake: vehicles.make,
@@ -89,7 +86,6 @@ export async function updateTagPreferences(
   tagId: string,
   ownerId: string,
   updates: {
-    notifySms?: boolean
     notifyWhatsapp?: boolean
     callEnabled?: boolean
     status?: 'UNREGISTERED' | 'ACTIVE' | 'INACTIVE'
@@ -99,7 +95,6 @@ export async function updateTagPreferences(
   if (!db) return false
 
   const set: Record<string, unknown> = { updatedAt: new Date() }
-  if (updates.notifySms !== undefined) set['notifySms'] = updates.notifySms
   if (updates.notifyWhatsapp !== undefined) set['notifyWhatsapp'] = updates.notifyWhatsapp
   if (updates.callEnabled !== undefined) set['callEnabled'] = updates.callEnabled
   if (updates.status !== undefined) set['status'] = updates.status
@@ -129,7 +124,6 @@ export async function activateTag(
       vehicleId,
       status: 'ACTIVE',
       notifyWhatsapp: whatsappEnabled,
-      notifySms: true,
       activatedAt: new Date(),
       updatedAt: new Date(),
     })

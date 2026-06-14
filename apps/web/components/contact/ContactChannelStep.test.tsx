@@ -20,13 +20,13 @@ describe('ContactChannelStep', () => {
         tagId="test-tag-uuid-001"
         issue={IssueType.VEHICLE_DAMAGE}
         basePath="/contact"
-        availableChannels={['SMS', 'WHATSAPP', 'CALL']}
+        availableChannels={['WHATSAPP', 'CALL']}
       />
     )
 
     expect(screen.getByText('Step 2 of 2')).toBeInTheDocument()
     expect(screen.getByText('How to contact?')).toBeInTheDocument()
     expect(screen.getByText('Vehicle damage')).toBeInTheDocument()
-    expect(screen.getByText('Send Message')).toBeInTheDocument()
+    expect(screen.getByText('Send on WhatsApp')).toBeInTheDocument()
   })
 })

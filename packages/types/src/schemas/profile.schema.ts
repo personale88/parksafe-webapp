@@ -12,13 +12,11 @@ export const UpdateProfileSchema = z.object({
 })
 
 export const UserSettingsSchema = z.object({
-  notifySms: z.boolean(),
   notifyWhatsapp: z.boolean(),
   marketingEmails: z.boolean(),
 })
 
 export const UpdateSettingsSchema = z.object({
-  notifySms: z.boolean().optional(),
   notifyWhatsapp: z.boolean().optional(),
   marketingEmails: z.boolean().optional(),
 })

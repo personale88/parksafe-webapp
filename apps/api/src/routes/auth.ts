@@ -25,8 +25,17 @@ authRoutes.post('/request-otp', zValidator('json', RequestOtpSchema), async c =>
       ...(result.devOtp !== undefined ? { devOtp: result.devOtp } : {}),
     })
   } catch (err) {
-    console.error('[auth] request-otp failed:', err instanceof Error ? err.message : err)
-    return c.json({ error: 'Failed to send OTP. Please try again.' }, 500)
+    const detail = err instanceof Error ? err.message : String(err)
+    console.error('[auth] request-otp failed:', detail)
+    const isDev = process.env.NODE_ENV === 'development'
+    return c.json(
+      {
+        error: isDev
+          ? `WhatsApp OTP failed: ${detail}`
+          : 'Failed to send OTP. Please try again.',
+      },
+      503
+    )
   }
 })
 

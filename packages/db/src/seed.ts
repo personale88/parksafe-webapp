@@ -9,6 +9,7 @@ import crypto from 'node:crypto'
 import { count } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
+import { resolveDatabaseUrl } from './load-env'
 import * as schema from './schema'
 
 const OWNER_ID = '00000000-0000-0000-0000-000000000010'
@@ -33,7 +34,13 @@ function seedPhoneHash(phone: string): string {
   return crypto.createHmac('sha256', secret).update(phone).digest('hex')
 }
 
-const client = postgres(process.env['DATABASE_URL'] ?? '')
+const databaseUrl = resolveDatabaseUrl()
+if (!databaseUrl) {
+  console.error('[seed] DATABASE_URL is required — set it in the environment or apps/api/.env')
+  process.exit(1)
+}
+
+const client = postgres(databaseUrl)
 const db = drizzle(client, { schema })
 
 async function seed() {
@@ -87,7 +94,6 @@ async function seed() {
         vehicleId: VEHICLE_1,
         ownerId: OWNER_ID,
         status: 'ACTIVE',
-        notifySms: true,
         notifyWhatsapp: true,
         callEnabled: false,
         activatedAt: new Date(),
@@ -98,7 +104,6 @@ async function seed() {
         vehicleId: VEHICLE_2,
         ownerId: OWNER_ID,
         status: 'INACTIVE',
-        notifySms: false,
         notifyWhatsapp: false,
         callEnabled: false,
       },
@@ -109,7 +114,6 @@ async function seed() {
     .insert(schema.userSettings)
     .values({
       userId: OWNER_ID,
-      notifySms: true,
       notifyWhatsapp: true,
       marketingEmails: false,
     })

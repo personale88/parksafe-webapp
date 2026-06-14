@@ -78,7 +78,7 @@ export function seedDevData(): void {
       id: crypto.randomUUID(),
       issueType: 'LIGHTS_ON',
       issueLabel: 'Lights on',
-      channel: 'SMS',
+      channel: 'WHATSAPP',
       createdAt: daysAgo(3),
       vehicle: cretaVehicle,
     },
@@ -119,7 +119,7 @@ export function seedDevData(): void {
       id: crypto.randomUUID(),
       issueType: 'BLOCKING_VEHICLE',
       issueLabel: 'Blocking vehicle',
-      channel: 'SMS',
+      channel: 'WHATSAPP',
       createdAt: daysAgo(5),
       vehicle: {
         make: 'Tata',
@@ -145,7 +145,6 @@ export function seedDevData(): void {
 
   // Notification preferences
   updateDevSettings(DEV_USER_ID, {
-    notifySms: true,
     notifyWhatsapp: true,
     marketingEmails: false,
   })

@@ -1,6 +1,6 @@
 # ParkSafe Webapp
 
-Privacy-first vehicle contact platform. Owners attach a QR tag to their car; strangers scan it and anonymously alert the owner (SMS, WhatsApp, or call) about parking issues — **without ever seeing the owner's phone number**.
+Privacy-first vehicle contact platform. Owners attach a QR tag to their car; strangers scan it and anonymously alert the owner (WhatsApp or call) about parking issues — **without ever seeing the owner's phone number**.
 
 Built as a **pnpm monorepo** with a Next.js frontend, Hono API backend, and provider-agnostic PostgreSQL (Drizzle ORM). Custom JWT auth with OTP verification — no Supabase, no vendor lock-in.
 
@@ -47,8 +47,8 @@ Hono API (apps/api :3001)
 | Frontend | Next.js 15, React 19, Tailwind CSS 4, Zustand, React Query |
 | Backend | Hono.js, Zod validation, custom JWT (`jose`) |
 | Database | PostgreSQL + Drizzle ORM (any provider via `DATABASE_URL`) |
-| OTP | Redis (Upstash) — in-memory fallback in dev mode |
-| Contact relay | Twilio SMS, WhatsApp Business API, Exotel (calls) |
+| OTP | Redis (Upstash) + WhatsApp via AiSensy — in-memory fallback in dev mode |
+| Contact relay | AiSensy WhatsApp (templates) + Exotel (calls) |
 
 ---
 
@@ -183,10 +183,11 @@ pnpm dev
 | `OTP_DEV_MODE` | Optional | `true` = dev mode (default), `false` = production path |
 | `UPSTASH_REDIS_REST_URL` | `OTP_DEV_MODE=false` | Redis for OTP storage |
 | `UPSTASH_REDIS_REST_TOKEN` | `OTP_DEV_MODE=false` | Redis auth token |
-| `TWILIO_*` | `OTP_DEV_MODE=false` | SMS relay |
-| `WHATSAPP_*` | `OTP_DEV_MODE=false` | WhatsApp relay |
+| `WHATSAPP_PROVIDER` | `OTP_DEV_MODE=false` | `aisensy` (default) or `meta` |
+| `AISENSY_API_KEY` | `WHATSAPP_PROVIDER=aisensy` | AiSensy API key |
+| `AISENSY_CAMPAIGN_*` | `WHATSAPP_PROVIDER=aisensy` | Live API campaign names (see `.env.example`) |
+| `WHATSAPP_*` | `WHATSAPP_PROVIDER=meta` | Meta Graph API credentials |
 | `EXOTEL_*` | Optional | Call relay |
-| `MSG91_*` | Optional | SMS fallback |
 | `DATABASE_URL_TEST` | Optional | Override integration test DB (default: `parksafe_test`) |
 
 See `apps/api/.env.example` for the full template.
@@ -221,6 +222,8 @@ DATABASE_URL=postgresql://... pnpm db:migrate
 | `002_dashboard_profile.sql` | `user_settings`, `reporter_user_id` on contact events |
 | `003_custom_auth.sql` | Removes Supabase RLS policies |
 | `004_phone_and_sessions.sql` | `phone_encrypted`, `auth_sessions` table |
+| `005_tag_batches.sql` | Admin QR batch generation |
+| `006_remove_sms_channel.sql` | Drops `notify_sms` columns (WhatsApp + Call only) |
 
 ### Seed (demo data)
 
@@ -278,21 +281,21 @@ Controlled by `OTP_DEV_MODE` in `apps/api/.env`.
 
 | Feature | Behavior |
 |---|---|
-| OTP delivery | Printed to API terminal (no SMS) |
+| OTP delivery | Printed to API terminal (no WhatsApp API) |
 | Redis | In-memory (no Upstash needed) |
 | Auth sessions | Dev tokens (`dev-session:...`) |
 | Database | Connected if `DATABASE_URL` is set; seed data usable |
-| Twilio/WhatsApp | Not required |
+| AiSensy/WhatsApp | Not required |
 
 ### `OTP_DEV_MODE=false` (production path)
 
 | Feature | Behavior |
 |---|---|
-| OTP delivery | Real SMS via Twilio/MSG91 |
+| OTP delivery | Real WhatsApp via AiSensy templates |
 | Redis | Upstash (required) |
 | Auth sessions | JWT access + opaque refresh tokens in `auth_sessions` |
 | Database | PostgreSQL required |
-| All relay adapters | Twilio + WhatsApp required |
+| WhatsApp | AiSensy (default) or Meta direct — all campaign env vars required |
 
 ---
 
@@ -496,8 +499,8 @@ Unit tests (`pnpm test`) never touch any database.
 - [ ] Set `OTP_DEV_MODE=false` in `apps/api/.env`
 - [ ] Generate strong secrets (≥32 chars) for all JWT/encryption keys
 - [ ] Configure Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)
-- [ ] Configure Twilio (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_RELAY_NUMBER`)
-- [ ] Configure WhatsApp Business API (`WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_ID`)
+- [ ] Configure AiSensy (`AISENSY_API_KEY` + all `AISENSY_CAMPAIGN_*` vars) — see `apps/api/docs/AISENSY.md`
+- [ ] Or Meta direct: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_ID` with `WHATSAPP_PROVIDER=meta`
 - [ ] Set `ALLOWED_ORIGIN` to your production domain
 - [ ] Run `pnpm db:migrate` against production `DATABASE_URL`
 - [ ] Set `NEXT_PUBLIC_API_URL` to production API URL in `apps/web/.env`
@@ -514,7 +517,7 @@ Unit tests (`pnpm test`) never touch any database.
 |---|---|
 | `password authentication failed` | Check `DATABASE_URL` credentials in `apps/api/.env` |
 | Tag lookup returns 404 | Restart `pnpm dev` — API must load `.env` for `DATABASE_URL` |
-| OTP not received | In dev mode, check the **API terminal** (not SMS) |
+| OTP not received | In dev mode, check the **API terminal** (not WhatsApp). In prod, verify AiSensy campaigns are Live |
 | Sign-in says "not registered" | Run `pnpm db:seed` or register via `/register` |
 | Integration tests wiped my data | Update to latest code — tests now use `parksafe_test` only |
 | `ALLOWED_ORIGIN` validation error | Ensure it is set in `apps/api/.env` (must be a valid URL) |

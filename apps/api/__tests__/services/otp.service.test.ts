@@ -12,8 +12,10 @@ vi.mock('../../src/lib/redis', () => ({
   },
 }))
 
-vi.mock('../../src/services/relay.service', () => ({
-  sendOtpSms: vi.fn().mockResolvedValue(undefined),
+vi.mock('../../src/services/whatsapp/whatsapp.service', () => ({
+  whatsappService: {
+    sendOtp: vi.fn().mockResolvedValue({ success: true }),
+  },
 }))
 
 // Must import after mocks are set up

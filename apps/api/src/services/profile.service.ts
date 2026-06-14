@@ -9,7 +9,6 @@ import { findUserById, updateUser } from '../repositories/users.repository'
 import { getSettings, upsertSettings } from '../repositories/userSettings.repository'
 
 const DEFAULT_SETTINGS: UserSettings = {
-  notifySms: true,
   notifyWhatsapp: true,
   marketingEmails: false,
 }
@@ -83,7 +82,6 @@ export async function updateUserSettings(
   if (isOtpDevMode) {
     const existing = getDevSettings(userId)
     const merged: UserSettings = {
-      notifySms: input.notifySms ?? existing.notifySms,
       notifyWhatsapp: input.notifyWhatsapp ?? existing.notifyWhatsapp,
       marketingEmails: input.marketingEmails ?? existing.marketingEmails,
     }
@@ -92,7 +90,6 @@ export async function updateUserSettings(
 
   const existing = await getSettings(userId)
   const merged: UserSettings = {
-    notifySms: input.notifySms ?? existing.notifySms,
     notifyWhatsapp: input.notifyWhatsapp ?? existing.notifyWhatsapp,
     marketingEmails: input.marketingEmails ?? existing.marketingEmails,
   }

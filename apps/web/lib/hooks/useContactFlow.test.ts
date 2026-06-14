@@ -53,7 +53,7 @@ describe('useContactFlow', () => {
       await result.current.submitContact({
         tagId: TAG_ID,
         issue: IssueType.BLOCKING_VEHICLE,
-        channel: ChannelType.SMS,
+        channel: ChannelType.WHATSAPP,
         successPath: SUCCESS_PATH,
       })
     })

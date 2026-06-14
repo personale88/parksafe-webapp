@@ -8,7 +8,7 @@
 import crypto from 'node:crypto'
 import { redis } from '../lib/redis'
 import { isOtpDevMode } from '../types/env'
-import { sendOtpSms } from './relay.service'
+import { whatsappService } from './whatsapp/whatsapp.service'
 
 const OTP_TTL_SECONDS = 300 // 5 minutes
 const MAX_ATTEMPTS = 3
@@ -47,7 +47,7 @@ interface OtpVerifyResult {
 
 /**
  * Initiates an OTP request for a given phone number.
- * Checks for active lockout, generates OTP, stores in Redis, dispatches SMS.
+ * Checks for active lockout, generates OTP, stores in Redis, dispatches WhatsApp OTP.
  * @param phone - E.164 formatted Indian mobile number
  */
 export async function requestOtp(phone: string): Promise<OtpRequestResult> {
@@ -67,7 +67,7 @@ export async function requestOtp(phone: string): Promise<OtpRequestResult> {
   const otpKey = `otp:code:${hash}`
   const attemptKey = `otp:attempts:${hash}`
 
-  // Store OTP with TTL — the raw phone number is only passed to the SMS adapter
+  // Store OTP with TTL — the raw phone number is only passed to the WhatsApp adapter
   await redis.setex(otpKey, OTP_TTL_SECONDS, otp)
   await redis.del(attemptKey) // Reset attempt counter on fresh OTP request
 
@@ -78,7 +78,10 @@ export async function requestOtp(phone: string): Promise<OtpRequestResult> {
     return { success: true, message: 'OTP sent', devOtp: otp }
   }
 
-  await sendOtpSms(phone, otp)
+  const result = await whatsappService.sendOtp(phone, otp)
+  if (!result.success) {
+    throw new Error(result.error ?? 'Failed to send OTP via WhatsApp')
+  }
 
   return { success: true, message: 'OTP sent' }
 }

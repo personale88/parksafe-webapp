@@ -23,7 +23,7 @@ export async function getTagInfo(tagId: string): Promise<TagInfo | null> {
  */
 export async function updateTagPreferences(
   tagId: string,
-  updates: { notifySms?: boolean; notifyWhatsapp?: boolean; callEnabled?: boolean },
+  updates: { notifyWhatsapp?: boolean; callEnabled?: boolean },
   token: string
 ): Promise<void> {
   await apiFetch(`/tags/${tagId}`, {

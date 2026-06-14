@@ -6,13 +6,13 @@ describe('parseSuccessParams', () => {
   it('parses valid success query params', () => {
     const result = parseSuccessParams({
       issue: IssueType.BLOCKING_VEHICLE,
-      channel: ChannelType.SMS,
+      channel: ChannelType.WHATSAPP,
       sentAt: '2026-05-24T06:57:00.000Z',
     })
 
     expect(result).toEqual({
       issue: IssueType.BLOCKING_VEHICLE,
-      channel: ChannelType.SMS,
+      channel: ChannelType.WHATSAPP,
       sentAt: '2026-05-24T06:57:00.000Z',
     })
   })

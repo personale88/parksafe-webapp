@@ -10,7 +10,7 @@ import { isOtpDevMode } from './types/env'
 const port = Number(process.env.PORT ?? 3001)
 
 if (isOtpDevMode) {
-  console.log('[api] OTP dev mode: codes are logged to this terminal (no SMS)')
+  console.log('[api] OTP dev mode: codes are logged to this terminal (no WhatsApp API calls)')
   const { seedDevData } = require('./services/dev-seed') as typeof import('./services/dev-seed')
   seedDevData()
 

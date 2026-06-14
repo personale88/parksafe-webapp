@@ -16,7 +16,7 @@ export const DEV_CONTACT_PREVIEW: {
     colour: 'Silver',
     platePartial: 'ABC 1234',
   },
-  availableChannels: ['SMS', 'WHATSAPP', 'CALL'],
+  availableChannels: ['WHATSAPP', 'CALL'],
 }
 
 /** Local-only bypass for tag lookup — never enabled in production builds. */

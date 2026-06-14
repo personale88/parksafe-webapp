@@ -8,6 +8,7 @@ import { join } from 'node:path'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
+import { resolveDatabaseUrl } from './load-env'
 
 /** Resolved from package root when running `pnpm db:migrate` in packages/db. */
 const MIGRATIONS_DIR = join(process.cwd(), 'src', 'migrations')
@@ -18,6 +19,7 @@ const MANUAL_MIGRATIONS = [
   '003_custom_auth.sql',
   '004_phone_and_sessions.sql',
   '005_tag_batches.sql',
+  '006_remove_sms_channel.sql',
 ] as const
 
 async function ensureManualMigrationsTable(sql: ReturnType<typeof postgres>) {
@@ -54,9 +56,11 @@ async function applyManualMigrations(sql: ReturnType<typeof postgres>) {
 }
 
 async function main() {
-  const databaseUrl = process.env['DATABASE_URL']
+  const databaseUrl = resolveDatabaseUrl()
   if (!databaseUrl) {
-    console.error('[migrate] DATABASE_URL is required')
+    console.error(
+      '[migrate] DATABASE_URL is required — set it in the environment or apps/api/.env',
+    )
     process.exit(1)
   }
 

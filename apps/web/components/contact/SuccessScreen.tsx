@@ -24,11 +24,9 @@ export function SuccessScreen({ issue, channel, sentAt, homeHref = '/' }: Succes
   const meta = ISSUE_META[issue]
   const sentTime = formatSentTime(sentAt)
   const successBody =
-    channel === ChannelType.WHATSAPP
-      ? t('CONTACT_SUCCESS_BODY_WHATSAPP')
-      : channel === ChannelType.CALL
-        ? t('CONTACT_SUCCESS_BODY_CALL')
-        : t('CONTACT_SUCCESS_BODY_SMS')
+    channel === ChannelType.CALL
+      ? t('CONTACT_SUCCESS_BODY_CALL')
+      : t('CONTACT_SUCCESS_BODY_WHATSAPP')
 
   return (
     <section

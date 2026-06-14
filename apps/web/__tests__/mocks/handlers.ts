@@ -14,7 +14,7 @@ export const handlers = [
         colour: 'Silver',
         platePartial: 'AB**1234',
       },
-      availableChannels: ['SMS', 'WHATSAPP', 'CALL'],
+      availableChannels: ['WHATSAPP', 'CALL'],
     })
   }),
 
@@ -101,7 +101,6 @@ export const handlers = [
   http.get(`${API_BASE}/profile/settings`, () => {
     return HttpResponse.json({
       settings: {
-        notifySms: true,
         notifyWhatsapp: true,
         marketingEmails: false,
       },
@@ -129,7 +128,7 @@ export const handlers = [
           id: 'received-event-002',
           issueType: 'LIGHTS_ON',
           issueLabel: 'Lights on',
-          channel: 'SMS',
+          channel: 'WHATSAPP',
           createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
           vehicle: {
             make: 'Hyundai',
@@ -191,7 +190,7 @@ export const handlers = [
           id: 'sent-event-002',
           issueType: 'BLOCKING_VEHICLE',
           issueLabel: 'Blocking vehicle',
-          channel: 'SMS',
+          channel: 'WHATSAPP',
           createdAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
           vehicle: {
             make: 'Tata',

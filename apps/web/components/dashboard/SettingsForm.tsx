@@ -1,6 +1,6 @@
 'use client'
 
-import { LogOut, Mail, MessageCircle, MessageSquare } from 'lucide-react'
+import { LogOut, Mail, MessageCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
@@ -69,10 +69,10 @@ function SettingsSkeleton() {
     <div className="flex flex-col gap-6">
       <NoticeSkeleton />
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-        {[1, 2, 3].map(i => (
+        {[1, 2].map(i => (
           <div
             key={i}
-            className={cn('p-4', i < 3 && 'border-b border-neutral-200')}
+            className={cn('p-4', i < 2 && 'border-b border-neutral-200')}
           >
             <div className="h-11 animate-pulse rounded-xl bg-neutral-100" />
           </div>
@@ -121,15 +121,6 @@ function SettingsFormInner() {
       />
 
       <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-        <PrefRow
-          icon={<MessageSquare className="size-5" aria-hidden />}
-          label={t('DASHBOARD_SETTINGS_SMS_LABEL')}
-          description={t('DASHBOARD_SETTINGS_SMS_DESC')}
-          checked={local.notifySms}
-          disabled={isUpdatingSettings}
-          onToggle={() => void toggle('notifySms')}
-          showDivider
-        />
         <PrefRow
           icon={<MessageCircle className="size-5" aria-hidden />}
           label={t('DASHBOARD_SETTINGS_WHATSAPP_LABEL')}

@@ -17,13 +17,13 @@ describe('SuccessScreen', () => {
     renderWithIntl(
       <SuccessScreen
         issue={IssueType.BLOCKING_VEHICLE}
-        channel={ChannelType.SMS}
+        channel={ChannelType.WHATSAPP}
         sentAt="2026-05-24T06:57:00.000Z"
       />
     )
 
     expect(screen.getByText('✓ Message Delivered')).toBeInTheDocument()
-    expect(screen.getByText(/notified via SMS/i)).toBeInTheDocument()
+    expect(screen.getByText(/notified via WhatsApp/i)).toBeInTheDocument()
     expect(screen.getByText('Alert sent')).toBeInTheDocument()
     expect(screen.getByText('Blocking my vehicle')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to Home' })).toHaveAttribute('href', '/')

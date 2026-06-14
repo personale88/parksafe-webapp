@@ -24,6 +24,7 @@ export default defineConfig({
     cwd: '../..',
     env: {
       ...process.env,
+      OTP_DEV_MODE: 'true',
       ADMIN_API_KEY:
         process.env['ADMIN_API_KEY'] ?? 'parksafe-admin-development-key-123456789',
     },

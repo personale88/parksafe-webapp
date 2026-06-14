@@ -8,7 +8,7 @@ import posthog from 'posthog-js'
 type AnalyticsEvent =
   | { event: 'qr_scanned'; properties: { tagStatus: 'ACTIVE' | 'INACTIVE' | 'UNREGISTERED' } }
   | { event: 'issue_selected'; properties: { issueType: string } }
-  | { event: 'channel_selected'; properties: { channel: 'SMS' | 'WHATSAPP' | 'CALL' } }
+  | { event: 'channel_selected'; properties: { channel: 'WHATSAPP' | 'CALL' } }
   | { event: 'contact_sent'; properties: { channel: string; issueType: string } }
   | { event: 'otp_requested'; properties: Record<string, never> }
   | { event: 'otp_verified'; properties: Record<string, never> }

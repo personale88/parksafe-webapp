@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, MessageCircle, Phone } from 'lucide-react'
+import { MessageCircle, Phone } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useTagStatus } from '@/lib/hooks/useTagStatus'
 import { switchTrackVariants, switchThumbVariants } from '@/components/ui/switch'
@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils/cn'
 import { type ReactNode, useMemo } from 'react'
 
 interface PrefOption {
-  key: 'notifySms' | 'notifyWhatsapp' | 'callEnabled'
+  key: 'notifyWhatsapp' | 'callEnabled'
   label: string
   description: string
   icon: ReactNode
@@ -17,7 +17,6 @@ interface PrefOption {
 interface NotificationPrefsProps {
   tagId: string
   currentPrefs: {
-    notifySms: boolean
     notifyWhatsapp: boolean
     callEnabled: boolean
   }
@@ -33,12 +32,6 @@ export function NotificationPrefs({ tagId, currentPrefs }: NotificationPrefsProp
 
   const prefOptions = useMemo(
     (): PrefOption[] => [
-      {
-        key: 'notifySms',
-        label: t('CONTACT_CHANNEL_SMS_LABEL'),
-        description: t('CONTACT_CHANNEL_SMS_DESC'),
-        icon: <MessageSquare className="h-4 w-4" aria-hidden="true" />,
-      },
       {
         key: 'notifyWhatsapp',
         label: t('CONTACT_CHANNEL_WHATSAPP_LABEL'),

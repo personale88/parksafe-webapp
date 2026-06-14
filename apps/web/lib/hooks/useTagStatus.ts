@@ -5,7 +5,6 @@ import { updateTagPreferences } from '@/lib/api/tags'
 import { useAuthStore } from '@/lib/store/authStore'
 
 interface TagPreferences {
-  notifySms?: boolean
   notifyWhatsapp?: boolean
   callEnabled?: boolean
 }

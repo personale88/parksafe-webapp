@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "auth_sessions" (
 );
 --> statement-breakpoint
 ALTER TABLE "users" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "phone_encrypted" text;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "phone_encrypted" text;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "auth_sessions_user_idx" ON "auth_sessions" ("user_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "auth_sessions_refresh_hash_idx" ON "auth_sessions" ("refresh_token_hash");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "auth_sessions_family_idx" ON "auth_sessions" ("family_id");--> statement-breakpoint

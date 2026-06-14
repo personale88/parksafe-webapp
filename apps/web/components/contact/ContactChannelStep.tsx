@@ -15,7 +15,7 @@ interface ContactChannelStepProps {
   tagId: string
   issue: IssueType
   basePath: string
-  availableChannels: Array<'SMS' | 'WHATSAPP' | 'CALL'>
+  availableChannels: Array<'WHATSAPP' | 'CALL'>
 }
 
 /** Step 2 — channel selection (`/contact/channel` or `/contact/[tagId]/channel`). */

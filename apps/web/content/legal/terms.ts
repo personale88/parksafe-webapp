@@ -45,7 +45,7 @@ export const termsOfService = {
       id: 'service',
       title: '4. Description of the Service',
       paragraphs: [
-        'ParkSafe enables communication about parked vehicles through QR tags. Reporters can send Alerts to Owners using channels the Owner has enabled (such as SMS, WhatsApp, or phone call where available).',
+        'ParkSafe enables communication about parked vehicles through QR tags. Reporters can send Alerts to Owners using channels the Owner has enabled (such as WhatsApp or phone call where available).',
         'The Service is designed so that Reporters can contact Owners without the Owner seeing the Reporter\'s phone number in the alert flow. Owners see the issue type and delivery channel, not Reporter identity, unless otherwise disclosed by law or with consent.',
         'We may update, suspend, or discontinue features of the Service at any time. We do not guarantee uninterrupted availability, delivery of messages, or that every alert will reach an Owner in real time.',
       ],
@@ -107,7 +107,7 @@ export const termsOfService = {
       id: 'communications',
       title: '10. Communications and third-party carriers',
       paragraphs: [
-        'Alerts may be delivered via third-party SMS, WhatsApp, or telephony providers. Delivery times and success depend on factors outside our control, including network coverage and Owner device settings.',
+        'Alerts may be delivered via third-party WhatsApp or telephony providers. Delivery times and success depend on factors outside our control, including network coverage and Owner device settings.',
         'Standard message and data rates from your carrier may apply. We are not responsible for charges imposed by your mobile operator.',
         'We may log delivery status for reliability and abuse prevention. We do not store Reporter phone numbers in alert records shown to Owners, as described in our Privacy Policy.',
       ],

@@ -8,7 +8,6 @@ import type { UserSettings } from '@parksafe/types'
 import { getDb } from '../lib/db'
 
 const DEFAULT_SETTINGS: UserSettings = {
-  notifySms: true,
   notifyWhatsapp: true,
   marketingEmails: false,
 }
@@ -27,7 +26,6 @@ export async function getSettings(userId: string): Promise<UserSettings> {
   if (!row) return DEFAULT_SETTINGS
 
   return {
-    notifySms: row.notifySms,
     notifyWhatsapp: row.notifyWhatsapp,
     marketingEmails: row.marketingEmails,
   }
@@ -41,14 +39,12 @@ export async function upsertSettings(userId: string, settings: UserSettings): Pr
     .insert(userSettings)
     .values({
       userId,
-      notifySms: settings.notifySms,
       notifyWhatsapp: settings.notifyWhatsapp,
       marketingEmails: settings.marketingEmails,
     })
     .onConflictDoUpdate({
       target: userSettings.userId,
       set: {
-        notifySms: settings.notifySms,
         notifyWhatsapp: settings.notifyWhatsapp,
         marketingEmails: settings.marketingEmails,
         updatedAt: new Date(),
@@ -60,7 +56,6 @@ export async function upsertSettings(userId: string, settings: UserSettings): Pr
   if (!row) return settings
 
   return {
-    notifySms: row.notifySms,
     notifyWhatsapp: row.notifyWhatsapp,
     marketingEmails: row.marketingEmails,
   }

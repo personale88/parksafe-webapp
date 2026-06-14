@@ -8,9 +8,8 @@ export function getSuccessBodyForChannel(channel: ChannelType): string {
       return en.CONTACT_SUCCESS_BODY_WHATSAPP
     case ChannelType.CALL:
       return en.CONTACT_SUCCESS_BODY_CALL
-    case ChannelType.SMS:
     default:
-      return en.CONTACT_SUCCESS_BODY_SMS
+      return en.CONTACT_SUCCESS_BODY_WHATSAPP
   }
 }
 

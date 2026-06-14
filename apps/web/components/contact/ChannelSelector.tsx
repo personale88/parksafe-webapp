@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ChevronRight, Loader2, MessageCircle, MessageSquare, Phone } from 'lucide-react'
+import { ChevronRight, Loader2, MessageCircle, Phone } from 'lucide-react'
 import { ChannelType, type IssueType } from '@parksafe/types'
 import { useTranslations } from 'next-intl'
 import { cva } from 'class-variance-authority'
@@ -52,13 +52,13 @@ export function ChannelSelector({
   const channelOptions = useMemo(
     (): ChannelOption[] => [
       {
-        type: ChannelType.SMS,
-        label: t('CONTACT_CHANNEL_SMS_LABEL'),
-        description: t('CONTACT_CHANNEL_SMS_DESC'),
-        icon: <MessageSquare className="h-5 w-5 text-primary-500" aria-hidden="true" />,
+        type: ChannelType.WHATSAPP,
+        label: t('CONTACT_CHANNEL_WHATSAPP_LABEL'),
+        description: t('CONTACT_CHANNEL_WHATSAPP_DESC'),
+        icon: <MessageCircle className="h-5 w-5 text-primary-500" aria-hidden="true" />,
         iconWrapClass:
           'border border-primary-500/20 bg-gradient-to-br from-primary-50 to-emerald-100',
-        disabledLabel: t('CONTACT_CHANNEL_SMS_DISABLED'),
+        disabledLabel: t('CONTACT_CHANNEL_WHATSAPP_DISABLED'),
       },
       {
         type: ChannelType.CALL,
@@ -68,15 +68,6 @@ export function ChannelSelector({
         iconWrapClass:
           'border border-warning-500/20 bg-gradient-to-br from-warning-50 to-amber-100',
         disabledLabel: t('CONTACT_CHANNEL_CALL_DISABLED'),
-      },
-      {
-        type: ChannelType.WHATSAPP,
-        label: t('CONTACT_CHANNEL_WHATSAPP_LABEL'),
-        description: t('CONTACT_CHANNEL_WHATSAPP_DESC'),
-        icon: <MessageCircle className="h-5 w-5 text-primary-500" aria-hidden="true" />,
-        iconWrapClass:
-          'border border-primary-500/20 bg-gradient-to-br from-primary-50 to-emerald-100',
-        disabledLabel: t('CONTACT_CHANNEL_WHATSAPP_DISABLED'),
       },
     ],
     [t]

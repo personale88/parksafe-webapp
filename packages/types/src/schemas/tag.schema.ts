@@ -9,11 +9,10 @@ export const TagInfoSchema = z.object({
   status: TagStatusSchema,
   vehicle: VehicleSchema.pick({ make: true, model: true, colour: true, platePartial: true }),
   /** Which channels the owner has enabled for this tag */
-  availableChannels: z.array(z.enum(['SMS', 'WHATSAPP', 'CALL'])),
+  availableChannels: z.array(z.enum(['WHATSAPP', 'CALL'])),
 })
 
 export const UpdateTagSchema = z.object({
-  notifySms: z.boolean().optional(),
   notifyWhatsapp: z.boolean().optional(),
   callEnabled: z.boolean().optional(),
   status: TagStatusSchema.exclude(['UNREGISTERED']).optional(),
