@@ -1,13 +1,6 @@
 {
-  "buildCommand": "pnpm turbo build",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
-  "functions": {
-    "apps/api/src/index.ts": {
-      "runtime": "edge",
-      "maxDuration": 10
-    }
-  },
+  "installCommand": "cd ../.. && pnpm install",
+  "buildCommand": "pnpm build",
   "rewrites": [
     {
       "source": "/api/(.*)",

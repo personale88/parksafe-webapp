@@ -17,7 +17,7 @@ export default function OfflinePage() {
   }, [])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-16">
+    <main className="mx-auto flex min-h-screen max-w-page flex-col items-center justify-center gap-8 px-4 py-16">
       <div className="flex flex-col items-center gap-4 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
           <WifiOff className="h-8 w-8 text-neutral-400" aria-hidden="true" />

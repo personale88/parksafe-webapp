@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-white via-white to-neutral-50 px-4 py-8">
+    <div className="mx-auto flex min-h-screen max-w-page flex-col bg-gradient-to-b from-white via-white to-neutral-50 px-4 py-8">
       <div className="flex items-center justify-between">
         <div className="h-9 w-32 animate-pulse rounded-xl bg-neutral-100" />
         <div className="flex gap-2">

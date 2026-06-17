@@ -19,7 +19,7 @@ export default function RootError({ error, reset }: ErrorProps) {
   }, [error])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center">
+    <main className="mx-auto flex min-h-screen max-w-page flex-col items-center justify-center gap-6 px-4 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-error-50">
         <AlertCircle className="h-8 w-8 text-error-500" aria-hidden="true" />
       </div>

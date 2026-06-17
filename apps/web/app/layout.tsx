@@ -69,8 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <IntlProvider locale={locale} messages={messages}>
           <QueryProvider>
             <AnalyticsProvider>
-              {/* Mobile-first centered container — max 430px on desktop */}
-              <div className="mx-auto min-h-screen max-w-page">
+              <div className="min-h-screen">
                 {children}
               </div>
             </AnalyticsProvider>

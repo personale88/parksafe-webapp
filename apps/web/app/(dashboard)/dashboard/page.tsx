@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <DashboardAuthGuard>
-      <main className="flex min-h-screen flex-col bg-gradient-to-b from-white via-white to-neutral-50 px-4 py-8">
+      <main className="mx-auto flex min-h-screen max-w-page flex-col bg-gradient-to-b from-white via-white to-neutral-50 px-4 py-8">
         <DashboardHeader />
         <DashboardContent />
         <DashboardFooter />

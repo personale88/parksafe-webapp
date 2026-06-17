@@ -13,7 +13,7 @@ export async function PageShell({ children }: PageShellProps) {
   const t = await getTranslations()
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="mx-auto flex min-h-screen max-w-page flex-col">
       <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
         <span className="text-base font-bold text-primary-500">{t('GLOBAL_BRAND_NAME')}</span>
         <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-600">
