@@ -28,6 +28,7 @@ import {
   adminDevListTagsByBatch,
   adminDevProcessBatch,
 } from './admin-dev-store'
+import { adminDistinctId, trackServer } from '../lib/analytics'
 
 const CHUNK_SIZE = 50
 /** Rough tags/sec for ETA — tuned from local bulk insert + UUID generation. */
@@ -141,10 +142,18 @@ async function processBatchAsync(batchId: string, requestedCount: number): Promi
     }
 
     await markBatchCompleted(batchId)
+    trackServer(adminDistinctId(), {
+      event: 'admin_batch_completed',
+      properties: { tagCount: requestedCount },
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown batch processing error'
     console.error(`[admin] Batch ${batchId} failed:`, message)
     await markBatchFailed(batchId, message)
+    trackServer(adminDistinctId(), {
+      event: 'admin_batch_failed',
+      properties: { tagCount: requestedCount },
+    })
   }
 }
 

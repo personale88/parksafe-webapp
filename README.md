@@ -188,6 +188,9 @@ pnpm dev
 | `AISENSY_CAMPAIGN_*` | `WHATSAPP_PROVIDER=aisensy` | Live API campaign names (see `.env.example`) |
 | `WHATSAPP_*` | `WHATSAPP_PROVIDER=meta` | Meta Graph API credentials |
 | `EXOTEL_*` | Optional | Call relay |
+| `POSTHOG_KEY` | Optional | Server-side PostHog project API key (`phc_…`) |
+| `POSTHOG_HOST` | Optional | PostHog ingest host (default `https://us.i.posthog.com`) |
+| `POSTHOG_ENABLED` | Optional | Set `true` to capture API events in local dev |
 | `DATABASE_URL_TEST` | Optional | Override integration test DB (default: `parksafe_test`) |
 
 See `apps/api/.env.example` for the full template.
@@ -198,7 +201,8 @@ See `apps/api/.env.example` for the full template.
 |---|---|
 | `NEXT_PUBLIC_API_URL` | API base URL for SSR (default `http://localhost:3001`) |
 | `NEXT_PUBLIC_DEV_SKIP_AUTH` | `true` = auto-login to dev dashboard user |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Optional analytics |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Optional analytics (browser) |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog region host (e.g. `https://us.i.posthog.com`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional error tracking |
 
 The web app has **no** `DATABASE_URL` and **no** Supabase keys.

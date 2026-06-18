@@ -26,6 +26,7 @@ import {
 import { activateTag as activateTagInDb } from '../repositories/tags.repository'
 import { getDb } from '../lib/db'
 import type { RegisterVehicleInput, Vehicle } from '@parksafe/types'
+import { trackServer, hashDistinctId } from '../lib/analytics'
 
 interface RegistrationResult {
   success: boolean
@@ -92,12 +93,20 @@ async function completeRegistration(
     )
     if (!activated) {
       console.warn('[registration] Tag activation failed for code:', input.tagCode)
+    } else {
+      trackServer(userId, { event: 'tag_activated', properties: {} })
     }
   }
 
   const tokens = isOtpDevMode
     ? createDevSession(userId)
     : await issueTokenPair(userId)
+
+  trackServer(userId, {
+    event: 'registration_completed',
+    properties: { tagLinked: Boolean(input.tagCode) },
+  })
+  trackServer(userId, { event: 'otp_verified', properties: { flow: 'register' } })
 
   return {
     success: true,
@@ -118,6 +127,10 @@ export async function registerVehicle(
 
   const otpResult = await verifyOtp(ownerPhoneE164, input.otp)
   if (!otpResult.valid) {
+    trackServer(hashDistinctId(ownerPhoneE164), {
+      event: 'otp_failed',
+      properties: { flow: 'register' },
+    })
     return { success: false, error: otpResult.message }
   }
 
@@ -141,6 +154,11 @@ export async function registerVehicle(
     )
 
     const { accessToken, refreshToken } = createDevSession(user.id)
+    trackServer(user.id, {
+      event: 'registration_completed',
+      properties: { tagLinked: Boolean(input.tagCode) },
+    })
+    trackServer(user.id, { event: 'otp_verified', properties: { flow: 'register' } })
     return {
       success: true,
       accessToken,

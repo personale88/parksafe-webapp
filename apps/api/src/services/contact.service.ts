@@ -12,6 +12,7 @@ import { isOtpDevMode } from '../types/env'
 import { incrementDevReports } from './dev-store'
 import { decryptOwnerPhone } from '../repositories/users.repository'
 import { findTagByCode } from '../repositories/tags.repository'
+import { hashDistinctId, trackServer } from '../lib/analytics'
 
 interface ContactRequestInput {
   tagId: string
@@ -98,13 +99,25 @@ export async function processContactRequest(
     ...(filteredNote !== undefined ? { customNote: filteredNote } : {}),
   })
 
+  const distinctId = reporterUserId ?? hashDistinctId(sessionId)
+  const eventProps = { channel, issueType }
+
   if (!relayResult.success) {
+    trackServer(distinctId, {
+      event: 'contact_failed',
+      properties: { ...eventProps, status: 503 },
+    })
     return {
       success: false,
       error: 'Failed to deliver message. Please try again.',
       status: 503,
     }
   }
+
+  trackServer(distinctId, {
+    event: 'contact_sent',
+    properties: eventProps,
+  })
 
   return {
     success: true,

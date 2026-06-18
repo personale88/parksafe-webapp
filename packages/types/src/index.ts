@@ -112,3 +112,5 @@ export {
 
 // Message templates
 export { MESSAGE_TEMPLATES } from './messageTemplates'
+
+export type { AnalyticsFlow, ServerAnalyticsEvent } from './analytics'

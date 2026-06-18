@@ -9,6 +9,7 @@ import { issueTokenPair } from './auth.service'
 import { findUserByPhoneHash } from '../repositories/users.repository'
 import { createDevSession } from './dev-registration'
 import { findDevUserIdByPhone } from './dev-store'
+import { trackServer, hashDistinctId } from '../lib/analytics'
 
 export const SIGN_IN_ERROR_NOT_REGISTERED = 'NOT_REGISTERED' as const
 
@@ -41,6 +42,10 @@ interface SignInResult {
 export async function signInWithOtp(phoneE164: string, otp: string): Promise<SignInResult> {
   const otpResult = await verifyOtp(phoneE164, otp)
   if (!otpResult.valid) {
+    trackServer(hashDistinctId(phoneE164), {
+      event: 'otp_failed',
+      properties: { flow: 'sign_in' },
+    })
     return { success: false, error: otpResult.message }
   }
 
@@ -54,6 +59,8 @@ export async function signInWithOtp(phoneE164: string, otp: string): Promise<Sig
       }
     }
     const { accessToken, refreshToken } = createDevSession(userId)
+    trackServer(userId, { event: 'otp_verified', properties: { flow: 'sign_in' } })
+    trackServer(userId, { event: 'sign_in_completed', properties: {} })
     return { success: true, accessToken, refreshToken, userId }
   }
 
@@ -67,6 +74,8 @@ export async function signInWithOtp(phoneE164: string, otp: string): Promise<Sig
   }
 
   const tokens = await issueTokenPair(user.id)
+  trackServer(user.id, { event: 'otp_verified', properties: { flow: 'sign_in' } })
+  trackServer(user.id, { event: 'sign_in_completed', properties: {} })
   return {
     success: true,
     accessToken: tokens.accessToken,
